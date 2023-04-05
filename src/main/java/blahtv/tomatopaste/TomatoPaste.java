@@ -1,13 +1,21 @@
 package blahtv.tomatopaste;
 
 import com.mojang.logging.LogUtils;
+
+import blahtv.tomatopaste.blocks.ModBlocks;
+import blahtv.tomatopaste.fluid.ModFluids;
+import blahtv.tomatopaste.items.ModItems;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.InterModComms;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModEnqueueEvent;
 import net.minecraftforge.fml.event.lifecycle.InterModProcessEvent;
@@ -21,17 +29,30 @@ import java.util.stream.Collectors;
 @Mod(TomatoPaste.MOD_ID)
 public class TomatoPaste
 {
-    static final String MOD_ID = "tomatopaste";
+    public static final String MOD_ID = "tomatopaste";
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public TomatoPaste()
     {
-        // Register the setup method for modloading
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
-        
+        IEventBus eventBus = FMLJavaModLoadingContext.get().getModEventBus();
+
+        ModItems.register(eventBus);
+        ModBlocks.register(eventBus);
+
+        ModFluids.register(eventBus);
+
+        eventBus.addListener(this::setup);
+        eventBus.addListener(this::clientSetup);
+
         // Register ourselves for server and other game events we are interested in
         MinecraftForge.EVENT_BUS.register(this);
+    }
+
+    private void clientSetup(final FMLClientSetupEvent event)
+    {
+        ItemBlockRenderTypes.setRenderLayer(ModFluids.TOMATO_SAUCE.get(), RenderType.translucent());
+        ItemBlockRenderTypes.setRenderLayer(ModFluids.TOMATO_SAUCE_FLOWING.get(), RenderType.translucent());
     }
 
     private void setup(final FMLCommonSetupEvent event)
